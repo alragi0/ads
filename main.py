@@ -131,8 +131,8 @@ def save_request(message: Message, ad_type):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
 def handle_approval(call: CallbackQuery):
-    if call.message.from_user.id != ADMIN_ID:
-        return
+    # if call.message.from_user.id != ADMIN_ID:
+    #     return
     user_id = int(call.data.split('_')[1])
     cursor.execute("SELECT * FROM requests WHERE user_id = ? AND status = 'pending'", (user_id,))
     request = cursor.fetchone()
