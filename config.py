@@ -2,7 +2,7 @@ from os import path, getenv
 
 class Config:
     # توكن البوت
-    BOT_TOKEN = getenv("BOT_TOKEN", "7134707061:AAGJ8McRWj1QhlxnB6WF7RBJEEcBNqZanAU")
+    BOT_TOKEN = getenv("BOT_TOKEN", "7134707061:dfag")
     #يوزر قناة المزاد
     FSUB = getenv("FSUB", "mmmzm")
     # ايدي قناة المزاد 
