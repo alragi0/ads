@@ -5,7 +5,7 @@ from config import cfg
 from telebot.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, PreCheckoutQuery, LabeledPrice
 
 API_TOKEN = cfg.BOT_TOKEN
-ADMIN_ID = cfg.SUDO 
+ADMIN_ID = cfg.SUDO # Replace with your Telegram user ID
 CHANNEL_ID = cfg.CHID
 CHANNEL_USERNAME = cfg.FSUB
 NAME_AUCTION = cfg.NAME_AUCTION
@@ -128,6 +128,10 @@ def request_url(message):
 
     
 def save_request(message: Message, ad_type):
+    cursor.execute("SELECT * FROM requests WHERE user_id = ? AND status = 'pending'", (message.from_user.id,))
+    if cursor.fetchone():
+        bot.send_message(message.chat.id, "🚫 لديك إعلان قيد المراجعة بالفعل. يرجى الانتظار حتى يتم قبوله أو رفضه قبل إرسال إعلان جديد.")
+        return
     text = message.text.strip()
     if ad_type == "🎁 هدية NFT" and not text.startswith(("https://t.me/nft/", "http://t.me/nft/", "t.me/nft/")):
         bot.send_message(message.chat.id, "هذا القسم مخصص لهدايا NFT، يرجى إرسال رابط مثل: t.me/nft/SnoopCigar-2919", disable_web_page_preview=True)
@@ -157,30 +161,44 @@ def save_request(message: Message, ad_type):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
 def handle_approval(call: CallbackQuery):
+    def escape_markdown_v2(text):
+        escape_chars = r"_*[]()~`>#+-=|{}.!\\"
+        return ''.join(['\\' + char if char in escape_chars else char for char in text])
+
     user_id = int(call.data.split('_')[1])
     cursor.execute("SELECT * FROM requests WHERE user_id = ? AND status = 'pending'", (user_id,))
     request = cursor.fetchone()
     if not request:
         bot.answer_callback_query(call.id, "لا يوجد طلب.")
         return
+
     if call.data.startswith("approve"):
         if request[2] == "🎁 هدية NFT":
-            msg = f" Upgraded Gift Soom • ( [Details]({request[3]}) ) 🎁\n"
+            link = escape_markdown_v2(request[3])
+            msg = f"Upgraded Gift Soom • [Details]({link}) 🎁\n"
         elif request[2] == "👤 يوزر NFT":
             username = escape_markdown_v2(request[3])
-            msg = f"NFT Username  • ( {username} )👤\n"
+            msg = f"NFT Username • {username} 👤\n"
         elif request[2] == "🏆 يوزر ملكية":
             username = escape_markdown_v2(request[3])
-            msg = f"Ownership Username • ( {username} )🏆\n"
-        msg += "\n*يمنع الكلام داخل المناقشة - ممنوع دفع سعر وعدم الشراء اذا خالفت القوانين يتم حظرك من القناة*\n\n"
-        msg += f"Auction channel - @{CHANNEL_USERNAME}"
+            msg = f"Ownership Username • {username} 🏆\n"
+        else:
+            fallback = escape_markdown_v2(request[3])
+            msg = f"🔹 إعلان جديد • ( [Details]({fallback}))\n"
+        rules_text = "يمنع الكلام داخل المناقشة - ممنوع دفع سعر وعدم الشراء اذا خالفت القوانين يتم حظرك من القناة."
+        msg += escape_markdown_v2(rules_text) + "\n\n"
+        ttt = f"Auction channel - @{CHANNEL_USERNAME}"
+        msg += escape_markdown_v2(ttt)
+        
         bot.send_message(CHANNEL_ID, msg, parse_mode='MarkdownV2', disable_web_page_preview=True)
         bot.send_message(user_id, "تم نشر إعلانك بنجاح.")
     else:
         bot.send_message(user_id, "تم رفض إعلانك.")
+
     cursor.execute("DELETE FROM requests WHERE id = ?", (request[0],))
     conn.commit()
     bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+
 
 @bot.message_handler(commands=['ban'])
 def ban_user(message: Message):
@@ -254,3 +272,4 @@ def broadcast(message:Message):
 if __name__ == "__main__":
     bot.send_message(chat_id=ADMIN_ID, text="تم تشغيل البوت بنجاح ✅.")
     bot.polling()
+    
