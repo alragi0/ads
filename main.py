@@ -5,7 +5,7 @@ from config import cfg
 from telebot.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, PreCheckoutQuery, LabeledPrice
 
 API_TOKEN = cfg.BOT_TOKEN
-ADMIN_ID = cfg.SUDO # Replace with your Telegram user ID
+ADMIN_ID = cfg.SUDO 
 CHANNEL_ID = cfg.CHID
 CHANNEL_USERNAME = cfg.FSUB
 NAME_AUCTION = cfg.NAME_AUCTION
@@ -58,6 +58,7 @@ def handle_ASC(call: CallbackQuery):
 - يكون المعرف على قناة فارغة مابيها معرف تواصل فقط معرف قناة المزاد مِثال - ( المزاد هنا @mmmzm ).
 
 - ارسل مُعرفك الى الزر الخاص به ( ملكية - NFT - مقتنى ).
+- الهدية يجب ان تكون في حسابك حصرا.
 
 - عدم تضمين اي طريقة للتواصل في داخل قناة المعرف. 
 
@@ -126,12 +127,14 @@ def request_url(message):
     bot.register_next_step_handler(message, lambda msg: save_request(msg, message.text))
 
 
-    
 def save_request(message: Message, ad_type):
-    cursor.execute("SELECT * FROM requests WHERE user_id = ? AND status = 'pending'", (message.from_user.id,))
-    if cursor.fetchone():
+    cur = conn.cursor()  # استخدم مؤشراً محلياً
+
+    cur.execute("SELECT * FROM requests WHERE user_id = ? AND status = 'pending'", (message.from_user.id,))
+    if cur.fetchone():
         bot.send_message(message.chat.id, "🚫 لديك إعلان قيد المراجعة بالفعل. يرجى الانتظار حتى يتم قبوله أو رفضه قبل إرسال إعلان جديد.")
         return
+
     text = message.text.strip()
     if ad_type == "🎁 هدية NFT" and not text.startswith(("https://t.me/nft/", "http://t.me/nft/", "t.me/nft/")):
         bot.send_message(message.chat.id, "هذا القسم مخصص لهدايا NFT، يرجى إرسال رابط مثل: t.me/nft/SnoopCigar-2919", disable_web_page_preview=True)
@@ -140,8 +143,8 @@ def save_request(message: Message, ad_type):
         bot.send_message(message.chat.id, "هذا القسم خاص باليوزرات، يرجى إرسال يوزر مثل: @ddddi")
         return
 
-    cursor.execute("INSERT INTO requests (user_id, type, url, status) VALUES (?, ?, ?, 'pending')",
-                   (message.from_user.id, ad_type, text))
+    cur.execute("INSERT INTO requests (user_id, type, url, status) VALUES (?, ?, ?, 'pending')",
+                (message.from_user.id, ad_type, text))
     conn.commit()
 
     username = message.from_user.username
@@ -154,10 +157,16 @@ def save_request(message: Message, ad_type):
     markup.add(types.InlineKeyboardButton("✅ موافقة", callback_data=f"approve_{message.from_user.id}"),
                types.InlineKeyboardButton("❌ رفض", callback_data=f"reject_{message.from_user.id}"))
 
-    bot.send_message(ADMIN_ID, f"""طلب جديد من {user_tag}
-النوع: {escape_markdown_v2(ad_type)}
-الرابط: {escape_markdown_v2(text)}""", reply_markup=markup, parse_mode='MarkdownV2')
+    msg = (
+        f"طلب جديد من {user_tag}\n"
+        f"النوع: {escape_markdown_v2(ad_type)}\n"
+        f"الرابط: {escape_markdown_v2(text)}"
+    )
+
+    bot.send_message(ADMIN_ID, msg, reply_markup=markup, parse_mode='MarkdownV2')
     bot.send_message(message.chat.id, "تم إرسال طلبك للمراجعة.")
+
+
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
 def handle_approval(call: CallbackQuery):
@@ -268,8 +277,16 @@ def broadcast(message:Message):
     bot.send_message(chat_id=message.chat.id, text=text)
     return
 
+@bot.message_handler(commands=['clear'])
+def clear_pending(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        # bot.reply_to(message, "🚫 هذا الأمر مخصص للمشرف فقط.")
+        return
+    cursor.execute("DELETE FROM requests WHERE status = 'pending'")
+    conn.commit()
+    bot.reply_to(message, "✅ تم حذف جميع الطلبات المعلقة بنجاح.")
+
 
 if __name__ == "__main__":
     bot.send_message(chat_id=ADMIN_ID, text="تم تشغيل البوت بنجاح ✅.")
     bot.polling()
-    
