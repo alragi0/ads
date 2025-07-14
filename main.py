@@ -199,8 +199,10 @@ def handle_approval(call: CallbackQuery):
         ttt = f"Auction channel - @{CHANNEL_USERNAME}"
         msg += escape_markdown_v2(ttt)
         
-        bot.send_message(CHANNEL_ID, msg, parse_mode='MarkdownV2', disable_web_page_preview=True)
-        bot.send_message(user_id, "تم نشر إعلانك بنجاح.")
+        send = bot.send_message(CHANNEL_ID, msg, parse_mode='MarkdownV2', disable_web_page_preview=True)
+        message_id = send.message_id
+        link_send = f"https://t.me/{CHANNEL_USERNAME}/{message_id}"
+        bot.send_message(user_id, "تم نشر إعلانك بنجاح.\n {}".format(link_send), disable_web_page_preview=True)
     else:
         bot.send_message(user_id, "تم رفض إعلانك.")
 
@@ -272,6 +274,7 @@ def broadcast(message:Message):
 - انشاء إذاعة  :  /broadcast
 -حظر مستخدم بالايدي  : /ban
 - الغاء حظر مستخدم بالايدي  :  /unban
+- حذف جميع الطلبات المعلفة : /clear
 
 • مطور السورس : @ddddi 🫶."""
     bot.send_message(chat_id=message.chat.id, text=text)
@@ -289,4 +292,4 @@ def clear_pending(message: Message):
 
 if __name__ == "__main__":
     bot.send_message(chat_id=ADMIN_ID, text="تم تشغيل البوت بنجاح ✅.")
-    bot.polling()
+    bot.infinity_polling()
