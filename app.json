@@ -1,0 +1,43 @@
+{
+  "name": "Telegram Auction Bot",
+  "description": "A Telegram bot for auctions and ad approvals on channels.",
+  "repository": "https://github.com/alragi0/ads",
+  "keywords": ["telegram", "bot", "auction"],
+  "env": {
+    "BOT_TOKEN": {
+      "description": "Token from BotFather",
+      "required": true
+    },
+    "FSUB": {
+      "description": "Channel username (without @)",
+      "required": true
+    },
+    "CHID": {
+      "description": "Channel ID (starts with -100)",
+      "required": true
+    },
+    "SUDO": {
+      "description": "Admin Telegram ID",
+      "required": true
+    },
+    "ADMIN": {
+      "description": "Admin Telegram username",
+      "required": true
+    },
+    "NAME_AUCTION": {
+      "description": "Auction Name",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
