@@ -1,17 +1,35 @@
-from os import path, getenv
+import os
+from dotenv import load_dotenv
+
+# تحميل المتغيرات من ملف .env (إذا كان موجودًا)
+load_dotenv()
 
 class Config:
-    # توكن البوت
-    BOT_TOKEN = getenv("BOT_TOKEN", "7134707061:dfag")
-    #يوزر قناة المزاد
-    FSUB = getenv("FSUB", "mmmzm")
-    # ايدي قناة المزاد 
-    CHID = int(getenv("CHID", "-1002041113828"))
-    # ايدي مالك المزاد 
-    SUDO = int(getenv("CHID", "926877758"))
-    # يوزر مالك المزاد
-    ADMIN = getenv("ADMIN", "ddddi")
-    # اسم المزاد
-    NAME_AUCTION = getenv("NAME_AUCTION", "Auction Xx")
-    
+    # المتغيرات الأساسية المطلوبة
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    FSUB = os.getenv("FSUB")
+    CHID = os.getenv("CHID")
+    SUDO = os.getenv("SUDO")
+    ADMIN = os.getenv("ADMIN")
+    NAME_AUCTION = os.getenv("NAME_AUCTION")
+
+    # تحقق من المتغيرات الأساسية
+    required_vars = {
+        "BOT_TOKEN": BOT_TOKEN,
+        "FSUB": FSUB,
+        "CHID": CHID,
+        "SUDO": SUDO,
+        "ADMIN": ADMIN,
+        "NAME_AUCTION": NAME_AUCTION
+    }
+
+    for var_name, value in required_vars.items():
+        if value is None or value.strip() == "":
+            raise ValueError(f"⚠️ Environment variable '{var_name}' is missing or empty!")
+
+    # تحويل بعض القيم إلى النوع الصحيح
+    CHID = int(CHID)
+    SUDO = int(SUDO)
+
+# إنشاء نسخة للوصول السريع
 cfg = Config()
