@@ -12,6 +12,7 @@ class Config:
     SUDO = os.getenv("SUDO")
     ADMIN = os.getenv("ADMIN")
     NAME_AUCTION = os.getenv("NAME_AUCTION")
+    CHID2 = os.getenv("CHID2")
 
     # تحقق من المتغيرات الأساسية
     required_vars = {
@@ -20,7 +21,8 @@ class Config:
         "CHID": CHID,
         "SUDO": SUDO,
         "ADMIN": ADMIN,
-        "NAME_AUCTION": NAME_AUCTION
+        "NAME_AUCTION": NAME_AUCTION,
+        "CHID2": CHID2
     }
 
     for var_name, value in required_vars.items():
@@ -30,6 +32,8 @@ class Config:
     # تحويل بعض القيم إلى النوع الصحيح
     CHID = int(CHID)
     SUDO = int(SUDO)
+    CHID2 = int(CHID2)
 
 # إنشاء نسخة للوصول السريع
 cfg = Config()
+
