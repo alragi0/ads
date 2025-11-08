@@ -16,6 +16,10 @@
       "description": "Channel ID (starts with -100)",
       "required": true
     },
+    "CHID2": {
+      "description": "Channel ID to send the orders actoin (starts with -100)",
+      "required": true
+    },
     "SUDO": {
       "description": "Admin Telegram ID",
       "required": true
